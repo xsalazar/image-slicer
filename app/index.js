@@ -18,7 +18,7 @@ exports.handler = async (event, context) => {
     console.log(event.body);
 
     // Take input data and resize it to be 7 64-px emojis wide
-    sharp(Buffer.from(event.body))
+    await sharp(Buffer.from(event.body))
       .resize(64 * 7)
       .toFile(fileLocation);
 
