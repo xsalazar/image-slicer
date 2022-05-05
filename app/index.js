@@ -15,6 +15,8 @@ exports.handler = async (event, context) => {
   if (event.body) {
     const fileLocation = "/tmp/tmp.png";
 
+    console.log(event.body);
+
     // Take input data and resize it to be 7 64-px emojis wide
     sharp(Buffer.from(event.body))
       .resize(64 * 7)
