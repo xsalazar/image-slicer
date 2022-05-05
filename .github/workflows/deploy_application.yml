@@ -49,7 +49,7 @@ jobs:
         working-directory: ./app
 
       - name: Create Deployment Package 🎁
-        run: zip -r lambda.zip .
+        run: zip -9 -r lambda.zip .
         working-directory: ./app
 
       - name: Deploy Lambda Function 🚀
