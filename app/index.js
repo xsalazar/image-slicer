@@ -22,6 +22,8 @@ exports.handler = async (event, context) => {
       .resize(64 * 7)
       .toFile(fileLocation);
 
+    console.log("Successfully resized and saved!");
+
     const metadata = await sharp(fileLocation).metadata();
 
     const xSlices = [64, 128, 192, 256, 320, 384, 448];
