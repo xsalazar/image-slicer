@@ -39,7 +39,12 @@ exports.handler = async (event, context) => {
       fileLocation,
       xSlices,
       ySlices,
-      { saveToDataUrl: true },
+      {
+        saveToDataUrl: true,
+        clipperOptions: {
+          canvas: require("canvas"),
+        },
+      },
       function (dataUrlList) {
         returnList = dataUrlList.map((x) => x.dataURI);
       }
