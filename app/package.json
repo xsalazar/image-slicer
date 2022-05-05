@@ -1,0 +1,9 @@
+{
+  "name": "image-slicer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "image-to-slices": "^0.1.3",
+    "sharp": "^0.29.3"
+  }
+}
