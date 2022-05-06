@@ -15,16 +15,16 @@ exports.handler = async (event, context) => {
   if (event.body) {
     const fileLocation = "/tmp/tmp.png";
 
-    // Take input data and resize it to be 7 64-px emojis wide
-    await sharp(Buffer.from(event.body, "base64"))
-      .resize(64 * 7)
-      .toFile(fileLocation);
-
-    const metadata = await sharp(fileLocation).metadata();
+    // Take input data and resize it to be 7 64-px emojis wide, then grab resulting height
+    const height = (
+      await sharp(Buffer.from(event.body, "base64"))
+        .resize(64 * 7)
+        .toFile(fileLocation)
+    ).height;
 
     const ySlices = [64, 128, 192, 256, 320, 384, 448];
 
-    const maxXSlices = Math.floor(metadata.height / 64);
+    const maxXSlices = Math.floor(height / 64);
     const xSlices = Array.from({ length: maxXSlices }, (_, i) => 64 + i * 64);
 
     var returnList;
