@@ -15,14 +15,10 @@ exports.handler = async (event, context) => {
   if (event.body) {
     const fileLocation = "/tmp/tmp.png";
 
-    console.log(event.body);
-
     // Take input data and resize it to be 7 64-px emojis wide
     await sharp(Buffer.from(event.body, "base64"))
       .resize(64 * 7)
       .toFile(fileLocation);
-
-    console.log("Successfully resized and saved!");
 
     const metadata = await sharp(fileLocation).metadata();
 
@@ -46,7 +42,6 @@ exports.handler = async (event, context) => {
         },
       },
       function (dataUrlList) {
-        console.log(dataUrlList);
         returnList = dataUrlList.map((x) => x.dataURI);
       }
     );
@@ -55,14 +50,12 @@ exports.handler = async (event, context) => {
       await new Promise((r) => setTimeout(r, 250));
     }
 
-    console.log(returnList);
-
     return {
       cookies: [],
       isBase64Encoded: true,
       statusCode: 200,
       headers: { "content-type": "application/json" },
-      body: returnList,
+      body: JSON.stringify(returnList),
     };
   }
 };
