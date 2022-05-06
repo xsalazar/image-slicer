@@ -25,8 +25,10 @@ exports.handler = async (event, context) => {
     const xSlices = [];
     const ySlices = [64, 128, 192, 256, 320, 384, 448];
 
-    for (var j = 64; j < metadata.height; j += 64) {
+    var j = 64;
+    while (j < metadata.height) {
       xSlices.push(j);
+      j += 64;
     }
 
     var returnList;
