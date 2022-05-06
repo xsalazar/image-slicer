@@ -1,5 +1,4 @@
 const sharp = require("sharp");
-const util = require("util");
 const imageToSlices = require("image-to-slices");
 
 exports.handler = async (event, context) => {
@@ -36,9 +35,7 @@ exports.handler = async (event, context) => {
 
     var returnList;
 
-    const imageToSlicesPromise = util.promisify(imageToSlices);
-
-    const dataUrlList = await imageToSlicesPromise(
+    imageToSlices(
       fileLocation,
       xSlices,
       ySlices,
@@ -47,11 +44,17 @@ exports.handler = async (event, context) => {
         clipperOptions: {
           canvas: require("canvas"),
         },
+      },
+      function (dataUrlList) {
+        console.log(dataUrlList);
+        returnList = dataUrlList.map((x) => x.dataURI);
       }
     );
 
-    console.log(dataUrlList);
-    returnList = dataUrlList.map((x) => x.dataURI);
+    while (!returnList) {
+      await new Promise((r) => setTimeout(r, 250));
+    }
+
     console.log(returnList);
 
     return {
