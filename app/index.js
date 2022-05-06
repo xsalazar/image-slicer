@@ -22,11 +22,11 @@ exports.handler = async (event, context) => {
 
     const metadata = await sharp(fileLocation).metadata();
 
-    const xSlices = [64, 128, 192, 256, 320, 384, 448];
-    const ySlices = [];
+    const xSlices = [];
+    const ySlices = [64, 128, 192, 256, 320, 384, 448];
 
     for (var j = 64; j < metadata.height; j += 64) {
-      ySlices.push(j);
+      xSlices.push(j);
     }
 
     var returnList;
