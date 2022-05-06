@@ -22,17 +22,12 @@ exports.handler = async (event, context) => {
 
     const metadata = await sharp(fileLocation).metadata();
 
-    const xSlices = [];
     const ySlices = [64, 128, 192, 256, 320, 384, 448];
 
-    var j = 64;
-    while (j < metadata.height) {
-      xSlices.push(j);
-      j += 64;
-    }
+    const maxXSlices = Math.floor(metadata.height / 64);
+    const xSlices = Array.from({ length: maxXSlices }, (_, i) => 64 + i * 64);
 
     var returnList;
-
     imageToSlices(
       fileLocation,
       xSlices,
