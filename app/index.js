@@ -46,6 +46,7 @@ exports.handler = async (event, context) => {
         },
       },
       function (dataUrlList) {
+        console.log(dataUrlList);
         returnList = dataUrlList.map((x) => x.dataURI);
       }
     );
@@ -56,7 +57,7 @@ exports.handler = async (event, context) => {
       cookies: [],
       isBase64Encoded: true,
       statusCode: 200,
-      headers: { "content-type": contentType },
+      headers: { "content-type": "application/json" },
       body: returnList,
     };
   }
