@@ -24,9 +24,6 @@ exports.handler = async (event, context) => {
 
     // If resulting image height isn't divisible by 64, pad the bottom so it is
     if (height % 64 !== 0) {
-      console.log(`Height: ${height}`);
-      console.log(`height % 64: ${height % 64} pixles over`);
-      console.log(`64 - (height % 64): ${64 - (height % 64)} to add`);
       const buffer = await sharp(fileLocation)
         .extend({
           bottom: 64 - (height % 64),
