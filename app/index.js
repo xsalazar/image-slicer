@@ -19,17 +19,19 @@ exports.handler = async (event, context) => {
     const height = (
       await sharp(Buffer.from(event.body, "base64"))
         .resize(64 * 7)
-        .toFile(fileLocation)
+        .toBuffer(fileLocation)
     ).height;
 
     // If resulting image height isn't divisible by 64, pad the bottom so it is
     if (height % 64 !== 0) {
-      await sharp(fileLocation)
+      const buffer = await sharp(fileLocation)
         .extend({
           bottom: 64 - (height % 64),
           background: { r: 0, g: 0, b: 0, alpha: 1 },
         })
-        .toFile(fileLocation);
+        .toBuffer();
+
+      await sharp(buffer).toFile(fileLocation);
     }
 
     const ySlices = [64, 128, 192, 256, 320, 384, 448];
