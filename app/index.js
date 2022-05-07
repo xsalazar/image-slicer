@@ -19,7 +19,7 @@ exports.handler = async (event, context) => {
     const height = (
       await sharp(Buffer.from(event.body, "base64"))
         .resize(64 * 7)
-        .toBuffer(fileLocation)
+        .toFile(fileLocation)
     ).height;
 
     // If resulting image height isn't divisible by 64, pad the bottom so it is
