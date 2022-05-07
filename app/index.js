@@ -22,6 +22,16 @@ exports.handler = async (event, context) => {
         .toFile(fileLocation)
     ).height;
 
+    // If resulting image height isn't divisible by 64, pad the bottom so it is
+    if (height % 64 !== 0) {
+      await sharp(fileLocation)
+        .extend({
+          bottom: 64 - (height % 64),
+          background: { r: 0, g: 0, b: 0, alpha: 1 },
+        })
+        .toFile(fileLocation);
+    }
+
     const ySlices = [64, 128, 192, 256, 320, 384, 448];
 
     const maxXSlices = Math.floor(height / 64);
