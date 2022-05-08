@@ -1,6 +1,6 @@
 const sharp = require("sharp");
 const imageToSlices = require("image-to-slices");
-import { v4 as uuidv4 } from "uuid";
+const { v4: uuidv4 } = require("uuid");
 
 exports.handler = async (event, context) => {
   console.log(JSON.stringify(event));
