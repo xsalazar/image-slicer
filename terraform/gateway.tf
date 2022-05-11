@@ -2,7 +2,7 @@ resource "aws_apigatewayv2_api" "instance" {
   name          = "image-slicer-api-gateway"
   protocol_type = "HTTP"
   cors_configuration {
-    allow_origins = ["https://emojimosaic.dev", "*"]
+    allow_origins = ["https://emojimosaic.dev"]
     allow_methods = ["PUT"]
     allow_headers = ["*"]
   }
