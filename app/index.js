@@ -127,7 +127,7 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({
           imageData: {
             imageParts: returnList,
-            isLandcape: isLandscape,
+            isLandscape: isLandscape,
           },
         }),
       };
