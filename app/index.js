@@ -11,7 +11,7 @@ exports.handler = async (event, context) => {
     try {
       // Return variables
       var returnList;
-      var isLandcape = false;
+      var isLandscape = false;
 
       const fileLocation = `/tmp/${uuidv4()}.png`;
       const originalImage = sharp(Buffer.from(event.body, "base64"));
@@ -69,7 +69,7 @@ exports.handler = async (event, context) => {
       }
       // The original image is wider than it is taller (landscape), make the longer dimension 5 emoji long
       else {
-        isLandcape = true;
+        isLandscape = true;
 
         const resizedHeight = (
           await originalImage
@@ -125,8 +125,10 @@ exports.handler = async (event, context) => {
         statusCode: 200,
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          imageData: returnList,
-          isLandcape: isLandscape,
+          imageData: {
+            imageParts: returnList,
+            isLandcape: isLandscape,
+          },
         }),
       };
     } catch {
