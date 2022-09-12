@@ -9,12 +9,17 @@ exports.handler = async (event, context) => {
 
   if (event.body) {
     try {
+      // Return variables
       var returnList;
+      var isLandcape = false;
+
       const fileLocation = `/tmp/${uuidv4()}.png`;
       const originalImage = sharp(Buffer.from(event.body, "base64"));
+      const originalHeight = (await originalImage.metadata()).height;
+      const originalWidth = (await originalImage.metadata()).width;
 
-      // If the original image is taller than it is wider, make it 5 emoji tall and calculate width
-      if (originalImage.height > originalImage.width) {
+      // If the original image is taller than it is wider (portrait), make the longer dimension 5 emoji long
+      if (originalHeight > originalWidth) {
         const resizedWidth = (
           await originalImage
             .resize(
@@ -62,12 +67,14 @@ exports.handler = async (event, context) => {
           await new Promise((r) => setTimeout(r, 50));
         }
       }
-      // The original image is wider than it is taller, so make it 5 emoji wide and calculate height
+      // The original image is wider than it is taller (landscape), make the longer dimension 5 emoji long
       else {
+        isLandcape = true;
+
         const resizedHeight = (
           await originalImage
             .resize(
-              64 * 5, //width
+              64 * 5, // width
               null // height
             )
             .toFile(fileLocation)
@@ -117,7 +124,10 @@ exports.handler = async (event, context) => {
         isBase64Encoded: false,
         statusCode: 200,
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(returnList),
+        body: JSON.stringify({
+          imageData: returnList,
+          isLandcape: isLandscape,
+        }),
       };
     } catch {
       return {
