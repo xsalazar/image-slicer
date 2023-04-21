@@ -23,7 +23,10 @@ exports.handler = async (event, context) => {
       const originalWidth = size.width;
 
       // If the original image is taller than it is wider (portrait), make the longer dimension 5 emoji long
-      if (originalHeight > originalWidth) {
+      if (
+        originalHeight > originalWidth &&
+        originalHeight / originalWidth <= 0.75
+      ) {
         const resizedWidth = (
           await originalImage
             .rotate()
@@ -80,39 +83,11 @@ exports.handler = async (event, context) => {
           await new Promise((r) => setTimeout(r, 50));
         }
       }
-      // The original image is square, fall back to (4x4) to preserve aspect ratio while still under JUMBOMOJI limit
-      else if (originalHeight === originalWidth) {
-        await originalImage
-          .rotate()
-          .resize(
-            64 * 4, // width
-            null // height
-          )
-          .toFile(fileLocation);
-
-        const slices = [64, 128, 192, 256];
-
-        imageToSlices(
-          fileLocation,
-          slices,
-          slices,
-          {
-            saveToDataUrl: true,
-            clipperOptions: {
-              canvas: require("canvas"),
-            },
-          },
-          function (dataUrlList) {
-            returnList = dataUrlList.map((x) => x.dataURI);
-          }
-        );
-
-        while (!returnList) {
-          await new Promise((r) => setTimeout(r, 50));
-        }
-      }
       // The original image is wider than it is taller (landscape), make the longer dimension 5 emoji long
-      else {
+      else if (
+        originalHeight < originalWidth &&
+        originalHeight / originalWidth <= 0.75
+      ) {
         isLandscape = true;
 
         const resizedHeight = (
@@ -149,6 +124,37 @@ exports.handler = async (event, context) => {
           fileLocation,
           xSlices,
           ySlices,
+          {
+            saveToDataUrl: true,
+            clipperOptions: {
+              canvas: require("canvas"),
+            },
+          },
+          function (dataUrlList) {
+            returnList = dataUrlList.map((x) => x.dataURI);
+          }
+        );
+
+        while (!returnList) {
+          await new Promise((r) => setTimeout(r, 50));
+        }
+      }
+      // The original image is square-ish, fall back to (4x4) to preserve aspect ratio while still under JUMBOMOJI limit
+      else {
+        await originalImage
+          .rotate()
+          .resize(
+            64 * 4, // width
+            null // height
+          )
+          .toFile(fileLocation);
+
+        const slices = [64, 128, 192, 256];
+
+        imageToSlices(
+          fileLocation,
+          slices,
+          slices,
           {
             saveToDataUrl: true,
             clipperOptions: {
