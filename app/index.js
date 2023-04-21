@@ -14,7 +14,15 @@ exports.handler = async (event, context) => {
       var isLandscape = false;
 
       const fileLocation = `/tmp/${uuidv4()}.png`;
-      const originalImage = sharp(Buffer.from(event.body, "base64")).rotate();
+
+      // Save rotated version first
+      const rotatedFileLocation = `/tmp/${uuidv4()}.png`;
+      const rotatedImage = await sharp(Buffer.from(event.body, "base64"))
+        .rotate()
+        .toFile(rotatedFileLocation);
+
+      // Load new image into memory
+      const originalImage = sharp(rotatedFileLocation);
       const originalHeight = (await originalImage.metadata()).height;
       const originalWidth = (await originalImage.metadata()).width;
 
