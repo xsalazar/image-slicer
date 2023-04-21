@@ -15,16 +15,12 @@ exports.handler = async (event, context) => {
 
       const fileLocation = `/tmp/${uuidv4()}.png`;
 
-      // Save rotated version first
-      const rotatedFileLocation = `/tmp/${uuidv4()}.png`;
-      const rotatedImage = await sharp(Buffer.from(event.body, "base64"))
-        .rotate()
-        .toFile(rotatedFileLocation);
+      // Get orientation based on EXIF metadata
+      const originalImage = sharp(Buffer.from(event.body, "base64"));
+      const size = getNormalSize(await originalImage.metadata());
 
-      // Load new image into memory
-      const originalImage = sharp(rotatedFileLocation);
-      const originalHeight = (await originalImage.metadata()).height;
-      const originalWidth = (await originalImage.metadata()).width;
+      const originalHeight = size.height;
+      const originalWidth = size.width;
 
       // If the original image is taller than it is wider (portrait), make the longer dimension 5 emoji long
       if (originalHeight > originalWidth) {
@@ -180,3 +176,9 @@ exports.handler = async (event, context) => {
     }
   }
 };
+
+function getNormalSize({ width, height, orientation }) {
+  return (orientation || 0) >= 5
+    ? { width: height, height: width }
+    : { width, height };
+}
