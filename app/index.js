@@ -14,7 +14,7 @@ exports.handler = async (event, context) => {
       var isLandscape = false;
 
       const fileLocation = `/tmp/${uuidv4()}.png`;
-      const originalImage = sharp(Buffer.from(event.body, "base64"));
+      const originalImage = sharp(Buffer.from(event.body, "base64")).rotate();
       const originalHeight = (await originalImage.metadata()).height;
       const originalWidth = (await originalImage.metadata()).width;
 
