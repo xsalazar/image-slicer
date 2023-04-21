@@ -34,8 +34,12 @@ exports.handler = async (event, context) => {
             .toFile(fileLocation)
         ).width;
 
+        console.log(`New width: ${resizedWidth}`);
+
         // If resulting image width isn't divisible by 64, pad the right side so it is
         if (resizedWidth % 64 !== 0) {
+          console.log(`Padding right side: ${64 - (resizedWidth % 64)}px`);
+
           const buffer = await sharp(fileLocation)
             .rotate()
             .extend({
@@ -49,6 +53,9 @@ exports.handler = async (event, context) => {
 
         const xSlices = [64, 128, 192, 256, 320]; // Horizontal slices parallel to the x-axis
         const maxYSlices = Math.floor(resizedWidth / 64);
+
+        console.log(`Max y-slices: ${maxYSlices}`);
+
         const ySlices = Array.from(
           { length: maxYSlices },
           (_, i) => 64 + i * 64
