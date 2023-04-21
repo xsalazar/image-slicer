@@ -37,6 +37,7 @@ exports.handler = async (event, context) => {
         // If resulting image width isn't divisible by 64, pad the right side so it is
         if (resizedWidth % 64 !== 0) {
           const buffer = await sharp(fileLocation)
+            .rotate()
             .extend({
               right: 64 - (resizedWidth % 64),
               background: { r: 0, g: 0, b: 0, alpha: 0 },
@@ -120,6 +121,7 @@ exports.handler = async (event, context) => {
         // If resulting image height isn't divisible by 64, pad the bottom side so it is
         if (resizedHeight % 64 !== 0) {
           const buffer = await sharp(fileLocation)
+            .rotate()
             .extend({
               bottom: 64 - (resizedHeight % 64),
               background: { r: 0, g: 0, b: 0, alpha: 0 },
