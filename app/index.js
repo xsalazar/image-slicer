@@ -26,6 +26,7 @@ exports.handler = async (event, context) => {
       if (originalHeight > originalWidth) {
         const resizedWidth = (
           await originalImage
+            .rotate()
             .resize(
               null, // width
               64 * 5 // height
@@ -74,6 +75,7 @@ exports.handler = async (event, context) => {
       // The original image is square, fall back to (4x4) to preserve aspect ratio while still under JUMBOMOJI limit
       else if (originalHeight === originalWidth) {
         await originalImage
+          .rotate()
           .resize(
             64 * 4, // width
             null // height
@@ -107,6 +109,7 @@ exports.handler = async (event, context) => {
 
         const resizedHeight = (
           await originalImage
+            .rotate()
             .resize(
               64 * 5, // width
               null // height
