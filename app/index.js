@@ -10,7 +10,6 @@ exports.handler = async (event, context) => {
     try {
       // Return variables
       var returnParts = [];
-      var isLandscape = false;
 
       // Scratch location for image manipulations
       const fileLocation = `/tmp/${uuidv4()}.png`;
@@ -73,9 +72,6 @@ exports.handler = async (event, context) => {
         originalWidth > originalHeight &&
         originalHeight / originalWidth <= 0.75
       ) {
-        // Necessary to let the frontend know this is 5 emoji wide
-        isLandscape = true;
-
         resizedWidth = 64 * 5;
         resizedHeight = (
           await inputImage
@@ -183,7 +179,7 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({
           imageData: {
             imageParts: returnParts,
-            isLandscape: isLandscape,
+            imageWidth: resizedWidth / 64,
           },
         }),
       };
