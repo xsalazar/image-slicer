@@ -1,5 +1,4 @@
 const sharp = require("sharp");
-const imageToSlices = require("image-to-slices");
 const { v4: uuidv4 } = require("uuid");
 
 // Slack uses JUMBOMOJI for less than 23 emoji in one message, so we'll have either a (4x5) or a (5x4) mosaic
@@ -10,158 +9,169 @@ exports.handler = async (event, context) => {
   if (event.body) {
     try {
       // Return variables
-      var returnList;
+      var returnParts = [];
       var isLandscape = false;
 
+      // Scratch location for image manipulations
       const fileLocation = `/tmp/${uuidv4()}.png`;
 
-      // Get orientation based on EXIF metadata
-      const originalImage = sharp(Buffer.from(event.body, "base64"));
-      const size = getNormalSize(await originalImage.metadata());
+      // Load input image
+      const inputImage = sharp(Buffer.from(event.body, "base64"));
 
+      // Get orientation based on EXIF metadata
+      const size = getNormalSize(await inputImage.metadata());
       const originalHeight = size.height;
       const originalWidth = size.width;
 
-      // If the original image is taller than it is wider (portrait), make the longer dimension 5 emoji long
+      console.log(
+        `Received image of (${originalWidth} x ${originalHeight}) (W x H)`
+      );
+
+      // These will hold the resized values once manipulations and calculations are done
+      let resizedHeight = 0;
+      let resizedWidth = 0;
+
+      // If the original image is taller than it is wider (portrait),
+      // and its aspect ratio is less-than or equal to 0.75,
+      // then make the longer dimension (height) 5 emoji tall
       if (
         originalHeight > originalWidth &&
-        originalHeight / originalWidth <= 0.75
+        originalWidth / originalHeight <= 0.75
       ) {
-        const resizedWidth = (
-          await originalImage
+        resizedHeight = 64 * 5;
+        resizedWidth = (
+          await inputImage
             .rotate()
             .resize(
               null, // width
-              64 * 5 // height
+              resizedHeight // height
             )
             .toFile(fileLocation)
         ).width;
 
-        // If resulting image width isn't divisible by 64, pad the right side so it is
+        // If resulting image width isn't evenly divisible by 64, pad the right side to the nearest divisible whole number
         if (resizedWidth % 64 !== 0) {
+          padding = 64 - (resizedWidth % 64); // Number of pixels to make width evenly divisible by 64
+          resizedWidth += padding; // New width = old width + padding
+
+          // Intermediate variable to write out to same location
           const buffer = await sharp(fileLocation)
             .rotate()
             .extend({
-              right: 64 - (resizedWidth % 64),
+              right: padding,
               background: { r: 0, g: 0, b: 0, alpha: 0 },
             })
             .toBuffer();
 
           await sharp(buffer).toFile(fileLocation);
         }
-
-        const xSlices = [64, 128, 192, 256, 320]; // Horizontal slices parallel to the x-axis
-        const maxYSlices = Math.floor(resizedWidth / 64);
-
-        const ySlices = Array.from(
-          { length: maxYSlices },
-          (_, i) => 64 + i * 64
-        );
-
-        imageToSlices(
-          fileLocation,
-          xSlices,
-          ySlices,
-          {
-            saveToDataUrl: true,
-            clipperOptions: {
-              canvas: require("canvas"),
-            },
-          },
-          function (dataUrlList) {
-            returnList = dataUrlList.map((x) => x.dataURI);
-          }
-        );
-
-        while (!returnList) {
-          await new Promise((r) => setTimeout(r, 50));
-        }
       }
-      // The original image is wider than it is taller (landscape), make the longer dimension 5 emoji long
+      // If the original image is wider than it is taller (landscape),
+      // and its aspect ratio is less-than or equal to 0.75,
+      // then make the longer dimension (width) 5 emoji wide
       else if (
-        originalHeight < originalWidth &&
+        originalWidth > originalHeight &&
         originalHeight / originalWidth <= 0.75
       ) {
+        // Necessary to let the frontend know this is 5 emoji wide
         isLandscape = true;
 
-        const resizedHeight = (
-          await originalImage
+        resizedWidth = 64 * 5;
+        resizedHeight = (
+          await inputImage
             .rotate()
             .resize(
-              64 * 5, // width
+              resizedWidth, // width
               null // height
             )
             .toFile(fileLocation)
         ).height;
 
-        // If resulting image height isn't divisible by 64, pad the bottom side so it is
+        // If resulting image height isn't evenly divisible by 64, pad the bottom side to the nearest divisible whole number
         if (resizedHeight % 64 !== 0) {
+          padding = 64 - (resizedHeight % 64); // Number of pixels to make height evenly divisible by 64
+          resizedHeight += padding; // New height = old height + padding
+
+          // Intermediate variable to write out to same location
           const buffer = await sharp(fileLocation)
             .rotate()
             .extend({
-              bottom: 64 - (resizedHeight % 64),
+              bottom: padding,
               background: { r: 0, g: 0, b: 0, alpha: 0 },
             })
             .toBuffer();
 
           await sharp(buffer).toFile(fileLocation);
         }
-
-        const ySlices = [64, 128, 192, 256, 320]; // Vertical slices parallel to the y-axis
-        const maxXSlices = Math.floor(resizedHeight / 64);
-        const xSlices = Array.from(
-          { length: maxXSlices },
-          (_, i) => 64 + i * 64
-        );
-
-        imageToSlices(
-          fileLocation,
-          xSlices,
-          ySlices,
-          {
-            saveToDataUrl: true,
-            clipperOptions: {
-              canvas: require("canvas"),
-            },
-          },
-          function (dataUrlList) {
-            returnList = dataUrlList.map((x) => x.dataURI);
-          }
-        );
-
-        while (!returnList) {
-          await new Promise((r) => setTimeout(r, 50));
-        }
       }
-      // The original image is square-ish, fall back to (4x4) to preserve aspect ratio while still under JUMBOMOJI limit
+      // Otherwise, the original image is square-ish -- either perfectly square or has an aspect ratio greater than 0.75
+      // Fall back to (4x4) to preserve aspect ratio while still under JUMBOMOJI limit
       else {
-        await originalImage
+        const resizedImage = await inputImage
           .rotate()
           .resize(
-            64 * 4, // width
-            null // height
+            originalWidth > originalHeight ? 64 * 4 : null, // width
+            originalWidth > originalHeight ? null : 64 * 4 // height
           )
           .toFile(fileLocation);
 
-        const slices = [64, 128, 192, 256];
+        resizedWidth = resizedImage.width;
+        resizedHeight = resizedImage.height;
 
-        imageToSlices(
-          fileLocation,
-          slices,
-          slices,
-          {
-            saveToDataUrl: true,
-            clipperOptions: {
-              canvas: require("canvas"),
-            },
-          },
-          function (dataUrlList) {
-            returnList = dataUrlList.map((x) => x.dataURI);
-          }
-        );
+        // If resulting image height isn't evenly divisible by 64, pad the bottom side to the nearest divisible whole number
+        if (resizedWidth > resizedHeight && resizedHeight % 64 !== 0) {
+          padding = 64 - (resizedHeight % 64); // Number of pixels to make height evenly divisible by 64
+          resizedHeight += padding; // New height = old height + padding
 
-        while (!returnList) {
-          await new Promise((r) => setTimeout(r, 50));
+          // Intermediate variable to write out to same location
+          const buffer = await sharp(fileLocation)
+            .rotate()
+            .extend({
+              bottom: padding,
+              background: { r: 0, g: 0, b: 0, alpha: 0 },
+            })
+            .toBuffer();
+
+          await sharp(buffer).toFile(fileLocation);
+        }
+        // If resulting image width isn't evenly divisible by 64, pad the right side to the nearest divisible whole number
+        else if (resizedHeight > resizedWidth && resizedWidth % 64 !== 0) {
+          padding = 64 - (resizedWidth % 64); // Number of pixels to make width evenly divisible by 64
+          resizedWidth += padding; // New width = old width + padding
+
+          // Intermediate variable to write out to same location
+          const buffer = await sharp(fileLocation)
+            .rotate()
+            .extend({
+              right: padding,
+              background: { r: 0, g: 0, b: 0, alpha: 0 },
+            })
+            .toBuffer();
+
+          await sharp(buffer).toFile(fileLocation);
+        }
+      }
+
+      console.log(
+        `Resized image to (${resizedWidth} x ${resizedHeight}) (W x H)`
+      );
+
+      // For each "block" of square 64-px height
+      for (var i = 0; i < resizedHeight / 64; i++) {
+        // For each "block" of square 64-px width
+        for (var j = 0; j < resizedWidth / 64; j++) {
+          const part = (
+            await sharp(fileLocation)
+              .extract({
+                left: j * 64,
+                top: i * 64,
+                width: 64,
+                height: 64,
+              })
+              .toBuffer()
+          ).toString("base64");
+
+          returnParts.push(part);
         }
       }
 
@@ -172,7 +182,7 @@ exports.handler = async (event, context) => {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           imageData: {
-            imageParts: returnList,
+            imageParts: returnParts,
             isLandscape: isLandscape,
           },
         }),
