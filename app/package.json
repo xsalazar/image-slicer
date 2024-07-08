@@ -4,6 +4,6 @@
   "main": "index.js",
   "dependencies": {
     "sharp": "^0.33.4",
-    "uuid": "^9.0.1"
+    "uuid": "^10.0.0"
   }
 }
