@@ -10,7 +10,7 @@
     }
   },
   "features": {
-    "terraform": {
+    "ghcr.io/devcontainers/features/terraform": {
       "version": "1.10.2"
     }
   }
