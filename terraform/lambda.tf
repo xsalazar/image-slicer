@@ -1,5 +1,5 @@
 resource "aws_lambda_function" "instance" {
-  function_name = "image-slicer"
+  function_name = "emoji-mosaic"
   filename      = "${path.module}/dummy-lambda-package/lambda.zip" // Simple hello world application
   role          = aws_iam_role.instance.arn
   handler       = "index.handler"

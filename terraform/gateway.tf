@@ -1,11 +1,31 @@
 resource "aws_apigatewayv2_api" "instance" {
-  name          = "image-slicer-api-gateway"
+  name          = "emoji-mosaic-api-gateway"
   protocol_type = "HTTP"
   cors_configuration {
     allow_origins = ["https://emojimosaic.dev"]
     allow_methods = ["PUT"]
     allow_headers = ["*"]
   }
+}
+
+resource "aws_apigatewayv2_api_mapping" "instance" {
+  api_id      = aws_apigatewayv2_api.instance.id
+  domain_name = aws_apigatewayv2_domain_name.instance.id
+  stage       = "$default"
+}
+
+resource "aws_apigatewayv2_domain_name" "instance" {
+  domain_name = "backend.emojimosaic.dev"
+
+  domain_name_configuration {
+    certificate_arn = data.aws_acm_certificate.instance.arn
+    endpoint_type   = "REGIONAL"
+    security_policy = "TLS_1_2"
+  }
+}
+
+data "aws_acm_certificate" "instance" {
+  domain = "*.emojimosaic.dev"
 }
 
 resource "aws_apigatewayv2_integration" "instance" {

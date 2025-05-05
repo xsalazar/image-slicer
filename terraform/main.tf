@@ -8,7 +8,7 @@ terraform {
   }
   backend "s3" {
     bucket = "xsalazar-terraform-state"
-    key    = "image-slicer/terraform.tfstate"
+    key    = "emoji-mosaic/terraform.tfstate"
     region = "us-west-2"
   }
 }
